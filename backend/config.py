@@ -20,13 +20,13 @@ DEFAULTS: Dict[str, Dict[str, Any]] = {
     "llm": {
         "base_url": DEFAULT_GATEWAY,
         "api_key": "",
-        "model": "mimo-v2.6-flash",
+        "model": "",
     },
     "asr": {
         "provider": "cloud",  # cloud = 走 OpenAI 兼容网关；llama = 本地 llama.cpp 跑 Qwen3-ASR
         "base_url": DEFAULT_GATEWAY,
         "api_key": "",
-        "model": "mimo-v2.5-asr",
+        "model": "",
         # 本地走 llama.cpp。下面三项留空就用 vendor/ 下的默认位置
         "llama_bin": "",
         "llama_model": "",

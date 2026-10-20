@@ -75,7 +75,12 @@ npm run build
 
 ### 设置存在哪
 
-`config.json`（在项目根目录）。**这个文件被 `.gitignore` 排除了**，因为里面有 API Key 和本机路径——分享或上传时不要带它，别人拿到会自动生成一份默认的。
+仓库里带了一份模板 [`config.example.json`](config.example.json)，里面列着**所有可以填的项**。
+
+- 想直接改文件：把它复制成 `config.json` 再填。
+- 或者完全不管它，启动后在「设置」里填也一样——两种方式效果相同，程序会自己生成 `config.json`。
+
+`config.json` 本身被 `.gitignore` 排除（它会存下你的 API Key、本机路径和导出目录），所以**别把它提交到仓库里**。
 
 ---
 
@@ -105,6 +110,7 @@ clipwork/
 │   └── vite.config.js
 ├── vendor/                   llama.cpp 二进制 + GGUF（不入库，自己下）
 ├── workspace/                每个工程一个目录（不入库）
+├── config.example.json       配置模板（入库，抄一份来改）
 └── config.json               本机设置（不入库）
 ```
 
@@ -216,11 +222,3 @@ workspace/<工程 id>/
 - **贴纸轨有 3 条泳道**，可以上下拖换道；改泳道数量要同步改 `App.jsx` 的 `STICKER_LANES` 和 CSS 里的轨高。
 - 片段的**边缘拖动不参与挤压**（只有整段平移会顶开邻居）。
 - 面板尺寸、时间轴缩放存在浏览器 localStorage，换浏览器要重设。
-
----
-
-## 八、分享前要检查的事
-
-- `config.json` **不要外传**（里面有 API Key 和本机路径），它已经在 `.gitignore` 里。
-- `vendor/`（约 1 GB）和 `workspace/`（你的素材和成片）同样不入库。
-- `backend/config.py` 里的默认网关是个占位地址，实际地址填在工作台设置里。

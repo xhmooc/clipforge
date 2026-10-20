@@ -1,0 +1,23 @@
+{
+  "llm": {
+    "base_url": "https://api.openai.com/v1",
+    "api_key": "",
+    "model": ""
+  },
+  "asr": {
+    "provider": "cloud",
+    "base_url": "https://api.openai.com/v1",
+    "api_key": "",
+    "model": "",
+    "llama_bin": "",
+    "llama_model": "",
+    "llama_mmproj": "",
+    "llama_port": 8081
+  },
+  "export": {
+    "dir": ""
+  },
+  "highlight": {
+    "limit": 3
+  }
+}
