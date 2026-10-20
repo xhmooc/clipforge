@@ -1,0 +1,1195 @@
+:root {
+  --bg: #14161a;
+  --panel: #1b1e24;
+  --panel-2: #22262e;
+  --border: #2c313a;
+  --text: #e6e8ec;
+  --muted: #8b93a1;
+  --accent: #35d07f;
+  --accent-text: #06240f;
+  --warning: #e2b34a;
+  --danger: #e2574a;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  font-size: 13px;
+}
+
+button {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  padding: 4px 8px;
+}
+
+button.ghost:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+input,
+select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.bar h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  margin: 0 12px 0 0;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status.s-transcribing {
+  color: var(--warning);
+}
+
+.status.s-transcribed {
+  color: var(--accent);
+}
+
+.status.s-preparing {
+  color: var(--warning);
+}
+
+.status.s-ready,
+.status.s-done,
+.status.s-analyzed {
+  color: var(--accent);
+}
+
+.status.s-analyzing,
+.status.s-previewing,
+.status.s-rendering {
+  color: var(--warning);
+}
+
+.status.s-failed {
+  color: var(--danger);
+}
+
+.message {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  /* 窗口太矮的时候让预览区自己滚，而不是被下面的工具栏和时间轴挤成 0 高，
+     否则预览框会整个消失（字幕和贴纸也就没地方点了） */
+  overflow-y: auto;
+}
+
+.stage-wrap {
+  position: relative;
+  flex: 1;
+  /* 给预览框一个下限，窗口再矮也别把它压成 0 宽 */
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 预览框固定成 9:16，和成片画布一致——这样贴纸位置在预览里就是所见即所得 */
+.frame {
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  aspect-ratio: 9 / 16;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+/* 竖屏源本来就是 9:16，裁满即可；横屏源等比缩到画布宽度，上下留黑 */
+.frame.portrait video {
+  object-fit: cover;
+}
+
+.frame.landscape video {
+  object-fit: contain;
+}
+
+/* 贴纸预览：位置算法和成片滤镜链里的 overlay 表达式一一对应，可以直接拖 */
+.sticker-overlay {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+  border: 1px dashed transparent;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.sticker-overlay:hover {
+  border-color: var(--accent);
+}
+
+/* 预览字幕：贴的位置就是 ASS 里 \pos 的锚点（文字块底边中点），所以预览即成片 */
+.overlay {
+  position: absolute;
+  /* 宽度由「框宽」决定（写在行内样式里），这里只兜个上限 */
+  max-width: 100%;
+  padding: 2px 4px;
+  border: 1px dashed transparent;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 700;
+  line-height: 1.22;
+  white-space: pre-wrap;
+  cursor: move;
+  paint-order: stroke fill;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+}
+
+.overlay:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* 字幕框右下角的小方块：拖它改字号（也就是缩放整个字幕框）。平时藏着，鼠标移上去才出现 */
+.overlay-handle {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  border: 2px solid var(--bg);
+  background: var(--accent);
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+
+.overlay:hover .overlay-handle {
+  opacity: 1;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.toggle input {
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* 时间轴：左边一列轨名，右边是多条轨道（字幕 / 贴纸 / 片段）。
+   所有轨道共用同一套缩放和平移，播放头贯穿上下 */
+.timeline {
+  position: relative;
+  flex: none;
+  /* 刻度 17 + 字幕 22 + 贴纸 3 条泳道 60 + 片段 22 */
+  height: 123px;
+  display: flex;
+  overflow: hidden;
+  user-select: none;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.tl-gutter {
+  flex: none;
+  width: 44px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--panel-2);
+}
+
+.tl-gutter-cell {
+  height: 22px;
+  display: flex;
+  align-items: center;
+  padding-left: 7px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.tl-gutter-cell:last-child {
+  border-bottom: none;
+}
+
+.tl-gutter-cell.ruler {
+  height: 17px;
+}
+
+/* 贴纸那格要跟三条泳道一样高 */
+.tl-gutter-cell.stickers {
+  height: 60px;
+  align-items: flex-start;
+  padding-top: 3px;
+}
+
+.tl-lanes {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  cursor: grab;
+}
+
+.tl-lanes:active {
+  cursor: grabbing;
+}
+
+.tl-ruler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 17px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tl-tick {
+  position: absolute;
+  top: 0;
+  height: 17px;
+  padding-left: 3px;
+  border-left: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 17px;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+/* 轨道只是「定位容器」：块相对于自己那条轨的宽度定位，所以几条轨天然对齐 */
+.tl-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tl-track-cue {
+  top: 17px;
+}
+
+/* 贴纸轨里还有 3 条泳道，块自己带 top 决定在第几条 */
+.tl-track-sticker {
+  top: 39px;
+  height: 60px;
+  border-bottom: none;
+  /* 每隔一条道画一根浅线，让人看得出有三条泳道 */
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 19px,
+    rgba(255, 255, 255, 0.07) 19px 20px
+  );
+}
+
+.tl-track-clip {
+  top: 99px;
+}
+
+/* 入点/出点标记，用颜色和播放头区分开 */
+.tl-mark {
+  position: absolute;
+  top: 17px;
+  bottom: 0;
+  width: 2px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.tl-mark.in {
+  background: var(--accent);
+}
+
+.tl-mark.out {
+  background: var(--warning);
+}
+
+.tl-block {
+  position: absolute;
+  top: 2px;
+  height: 18px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  z-index: 1;
+}
+
+.tl-block.active {
+  border-color: var(--accent);
+  background: rgba(53, 208, 127, 0.22);
+}
+
+.tl-block.selected {
+  outline: 1px solid var(--accent);
+}
+
+.tl-edge {
+  flex: none;
+  width: 6px;
+  cursor: ew-resize;
+  background: var(--border);
+}
+
+.tl-edge:hover {
+  background: var(--accent);
+}
+
+.tl-body {
+  flex: 1;
+  min-width: 0;
+  cursor: grab;
+}
+
+.tl-body:active {
+  cursor: grabbing;
+}
+
+/* 贴纸块：长度就是它出现到消失的时间，top 由泳道序号决定（写在行内样式里） */
+.tl-sticker {
+  position: absolute;
+  height: 18px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--warning);
+  opacity: 0.75;
+  z-index: 1;
+}
+
+.tl-sticker .tl-edge {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tl-sticker .tl-edge:hover {
+  background: var(--text);
+}
+
+.tl-clip {
+  position: absolute;
+  top: 2px;
+  height: 18px;
+  display: flex;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--accent);
+  opacity: 0.55;
+  z-index: 1;
+}
+
+.tl-clip.selected {
+  opacity: 0.95;
+  box-shadow: 0 0 0 1px var(--text);
+}
+
+.tl-clip .tl-edge {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tl-clip .tl-edge:hover {
+  background: var(--text);
+}
+
+/* 镜像过的片段在轨道上给个颜色提示，免得忘了哪段翻过 */
+.tl-clip.mirrored {
+  background: var(--warning);
+}
+
+.tl-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--danger);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.drop-hint {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(20, 22, 26, 0.82);
+  border: 3px dashed var(--accent);
+  color: var(--accent);
+  font-size: 20px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* 模型设置弹窗 */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal {
+  width: 540px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.modal h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.modal section {
+  margin-bottom: 18px;
+}
+
+.modal h3 {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.modal label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.modal label input,
+.modal label select {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-note {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* 转写进度条 */
+.progress {
+  flex: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--panel-2);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+
+.reveal {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* 入点/出点工具条：按功能分组，中间用竖线隔开，一眼能找到自己在干什么 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 7px 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.tool-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
+}
+
+.tool-group:last-of-type {
+  border-right: none;
+  padding-right: 0;
+}
+
+.toolbar kbd {
+  margin-left: 5px;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.badge {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.orientation {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playhead,
+.mark {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playhead {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.mark.in {
+  color: var(--accent);
+}
+
+.mark.out {
+  color: var(--warning);
+}
+
+.empty {
+  margin: auto;
+  color: var(--muted);
+}
+
+.side {
+  /* 宽度由中间那条竖向拖动条控制，这里只给个兜底值 */
+  width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 16px 16px 16px 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+ * 面板高度由「拖动条」调节（见 .splitter）。
+ * 每个面板有个最小高度兜底，窗口矮的时候按比例缩，谁都不会被压成 0 高
+ * ——之前用的是 flex:1 + min-height:0，三个面板抢高度时会把某个面板压没。
+ */
+.panel {
+  flex: 0 1 auto;
+  /* 下限给得比较小，是为了让「字幕」能真正把别的面板顶小 */
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/*
+ * 视觉顺序改成「字幕 → 片段 → 装饰」。
+ * DOM 顺序不动，只用 order 调换位置——为的是让「字幕 ↔ 片段」这条拖动条
+ * 直接相邻。之前字幕只能跟装饰换高度，而装饰本来就贴着下限，
+ * 结果字幕怎么拖都大不了，这是上一版没修对的地方。
+ */
+.panel-subtitles {
+  order: 1;
+}
+
+.splitter-a {
+  order: 2;
+}
+
+/* 片段面板居中，并且负责吃掉剩余高度，窗口再高也不留空 */
+.panel-clips {
+  order: 3;
+  flex: 1 1 auto;
+}
+
+.splitter-b {
+  order: 4;
+}
+
+.panel-decor {
+  order: 5;
+}
+
+/* 装饰面板就是个素材库，别让它长太高 */
+.panel-decor {
+  overflow: hidden;
+}
+
+.panel-decor .stickers {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.panel-clips .ai-list {
+  max-height: 140px;
+}
+
+/* 面板之间的拖动条：平时只看得到一根小横线，移上去变绿 */
+.splitter {
+  position: relative;
+  flex: none;
+  height: 12px;
+  cursor: row-resize;
+}
+
+.splitter::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 5px;
+  width: 46px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+.splitter:hover::after {
+  background: var(--accent);
+}
+
+/* 舞台和右侧栏之间的竖向拖动条，用来改右侧栏宽度 */
+.v-splitter {
+  position: relative;
+  flex: none;
+  width: 8px;
+  cursor: col-resize;
+}
+
+.v-splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 2px;
+  height: 56px;
+  border-radius: 1px;
+  background: var(--border);
+  transform: translateY(-50%);
+}
+
+.v-splitter:hover::after {
+  background: var(--accent);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.count {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 12px;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--panel-2);
+}
+
+.row.active {
+  background: rgba(53, 208, 127, 0.14);
+}
+
+.row.selected {
+  outline: 1px solid var(--accent);
+}
+
+.times {
+  display: flex;
+  gap: 4px;
+}
+
+.play {
+  flex: none;
+  padding: 2px 7px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.play:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.times input {
+  width: 62px;
+  font-variant-numeric: tabular-nums;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.row.clip {
+  cursor: default;
+}
+
+.row.clip .title {
+  width: 110px;
+}
+
+.range {
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.range:hover {
+  color: var(--accent);
+}
+
+.dur {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rendered {
+  border-top: 1px solid var(--border);
+  padding: 8px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.rendered h3 {
+  margin: 0 0 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.rendered a {
+  color: var(--accent);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.rendered a:hover {
+  text-decoration: underline;
+}
+
+.style-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.style-bar select {
+  min-width: 96px;
+}
+
+.style-bar .size {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.style-bar .size input {
+  width: 58px;
+}
+
+.style-bar .swatch {
+  width: 34px;
+  height: 26px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.style-bar .note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.handle {
+  flex: none;
+  padding: 0 2px;
+  color: var(--muted);
+  cursor: grab;
+  user-select: none;
+}
+
+.handle:active {
+  cursor: grabbing;
+}
+
+.order {
+  flex: none;
+  min-width: 14px;
+  text-align: right;
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.moves {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+
+.move {
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.row.clip .title {
+  width: 84px;
+}
+
+/* AI 找出来的商品讲解段：可以整段或单个加进片段列表 */
+.ai-list {
+  flex: none;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ai-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ai-head span {
+  margin-right: auto;
+}
+
+.ai-item {
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.ai-item:hover {
+  background: var(--panel-2);
+}
+
+.ai-row1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ai-range {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-row1 .ghost {
+  margin-left: auto;
+  padding: 2px 8px;
+}
+
+.ai-row2 {
+  padding-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* 装饰面板：贴纸列表和三个滑块。面板不参与平分高度，按内容撑开 */
+.panel.panel-tight {
+  flex: none;
+  max-height: 236px;
+}
+
+.stickers {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sticker-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.sticker-row .thumb {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  background: #000;
+  border-radius: 6px;
+}
+
+.sticker-controls {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sticker-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.sticker-controls input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--accent);
+}
+
+/* 片段行上的镜像开关，以及字幕样式栏里的上传按钮 */
+.row.clip .mirror {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.row.clip .mirror input {
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.row.clip.mirrored {
+  background: rgba(226, 179, 74, 0.12);
+}
+
+.style-bar .upload {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* 「框宽」读数：字号是字多大，框宽是一行放几个字，两个概念要能分得清 */
+.style-bar .box-width {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 「AI 找高光」要几段的输入框 */
+.panel-head .limit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.panel-head .limit input {
+  width: 44px;
+  text-align: center;
+}
+
+/* 片段面板里的剪切/合并条 */
+.clip-ops {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.clip-ops .note {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.row.clip.selected {
+  outline: 1px solid var(--accent);
+}
+
+.sticker-window {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}

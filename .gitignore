@@ -1,0 +1,21 @@
+# 运行环境与依赖（自己装，别入库）
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+
+# 前端构建产物
+frontend/dist/
+
+# llama.cpp 二进制和本地模型 GGUF（体积大，按 README 自己下载）
+vendor/
+
+# 工程数据：每场直播的素材、音频、字幕、成片都在这里面
+workspace/
+
+# 本机配置。里面有 API Key、本机路径和导出目录，绝对不要外传
+config.json
+
+# 系统杂物
+.DS_Store
+Thumbs.db
