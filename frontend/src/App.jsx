@@ -230,7 +230,7 @@ export default function App() {
   const [panelSizes, setPanelSizes] = useState(() => {
     try {
       // 带 v2 是为了让「字幕给足」这套新默认值生效一次，不然老记录会一直压着
-      const raw = localStorage.getItem('clipwork.panels.v2')
+      const raw = localStorage.getItem('clipforge.panels.v2')
       if (raw) return JSON.parse(raw)
     } catch {
       /* 读不出来就用默认值 */
@@ -240,7 +240,7 @@ export default function App() {
   })
   // 右侧栏宽度，同样可以拖
   const [sideWidth, setSideWidth] = useState(() => {
-    const saved = Number(localStorage.getItem('clipwork.sideWidth'))
+    const saved = Number(localStorage.getItem('clipforge.sideWidth'))
     return Number.isFinite(saved) && saved >= 320 ? saved : 480
   })
   const [message, setMessage] = useState('')
@@ -265,8 +265,8 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('clipwork.panels.v2', JSON.stringify(panelSizes))
-      localStorage.setItem('clipwork.sideWidth', String(sideWidth))
+      localStorage.setItem('clipforge.panels.v2', JSON.stringify(panelSizes))
+      localStorage.setItem('clipforge.sideWidth', String(sideWidth))
     } catch {
       /* 存不了也不影响使用 */
     }
@@ -1211,7 +1211,7 @@ export default function App() {
     >
       {dragging && <div className="drop-hint">松手即导入回放</div>}
       <header className="bar">
-        <h1>ClipWork</h1>
+        <h1>切片工坊</h1>
         <select value={project?.id || ''} onChange={(event) => open(event.target.value)}>
           <option value="">选择工程…</option>
           {projects.map((item) => (

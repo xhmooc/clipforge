@@ -1,6 +1,6 @@
-"""ClipWork 后端入口。
+"""切片工坊（ClipForge）后端入口。
 
-跑法（在 clipwork 目录下）：
+跑法（在 clipforge 目录下）：
     .venv\\Scripts\\python.exe -m uvicorn backend.main:app --reload
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ from .models import (
 from .services import asr, ffmpeg, fonts, highlight, render
 from .services import project as projects
 
-app = FastAPI(title="ClipWork", version="0.1.0")
+app = FastAPI(title="ClipForge", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,4 +1,4 @@
-# ClipWork · 带货直播回放切片工作台
+# 切片工坊 ClipForge · 电商直播切片工作台
 
 把一场直播回放（几小时的 FLV/MP4）变成一批可以直接发布的竖屏切片：
 
@@ -13,7 +13,7 @@
 ### 1. 后端
 
 ```bash
-cd clipwork
+cd clipforge
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r backend/requirements.txt
@@ -87,7 +87,7 @@ npm run build
 ## 三、目录结构
 
 ```
-clipwork/
+clipforge/
 ├── backend/
 │   ├── main.py               FastAPI 入口：路由 + 后台任务
 │   ├── models.py             Pydantic 数据模型（Project / Clip / Sticker / SubtitleCue …）

@@ -1,7 +1,7 @@
 """模型接入配置。
 
 所有模型参数都能在工作台的「设置」里改，不必碰环境变量。
-配置落在 clipwork/config.json；密钥留空时会从环境变量兜底，省得第一次还要手填。
+配置落在 clipforge/config.json；密钥留空时会从环境变量兜底，省得第一次还要手填。
 """
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def load() -> Dict[str, Dict[str, Any]]:
             data[name] = merged
 
     # 第一次运行时从环境变量兜底
-    fallback = os.getenv("CLIPWORK_MODEL_API_KEY", "")
+    fallback = os.getenv("CLIPFORGE_MODEL_API_KEY", "")
     for name in ("llm", "asr"):
         if not data[name]["api_key"]:
             data[name]["api_key"] = fallback
@@ -82,4 +82,4 @@ def api_key(name: str) -> str:
 
 
 # 本地转写是串行的；云端可以并发，并发越高越快，但要留着网关限额
-ASR_CONCURRENCY = int(os.getenv("CLIPWORK_ASR_CONCURRENCY", "8"))
+ASR_CONCURRENCY = int(os.getenv("CLIPFORGE_ASR_CONCURRENCY", "8"))
